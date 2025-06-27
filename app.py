@@ -2,7 +2,7 @@ import customtkinter as ctk
 from tkinter import messagebox
 from user import User
 from user_data import load_users_from_csv, save_users_to_csv
-
+from admin import verify_admin
 ctk.set_appearance_mode("System")
 ctk.set_default_color_theme("blue")
 
@@ -141,8 +141,7 @@ class App(ctk.CTk):
         email = self.admin_email_entry.get().strip()
         password = self.admin_pass_entry.get().strip()
 
-        # Simple hardcoded admin check
-        if email == "admin@example.com" and password == "admin123":
+        if verify_admin(email, password):
             messagebox.showinfo("Admin Login", "Welcome Admin!")
             # TODO: proceed to admin dashboard
         else:
