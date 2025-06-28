@@ -3,6 +3,8 @@ from tkinter import messagebox
 from user import User
 from user_data import load_users_from_csv, save_users_to_csv
 from admin import verify_admin
+import bcrypt
+
 ctk.set_appearance_mode("System")
 ctk.set_default_color_theme("blue")
 
@@ -11,7 +13,7 @@ class App(ctk.CTk):
         super().__init__()
 
         self.title("Ride Booking System Login")
-        self.geometry("400x350")
+        self.geometry("400x400")
 
         # Load users from CSV on startup
         self.users_db = load_users_from_csv()
@@ -50,10 +52,15 @@ class App(ctk.CTk):
         label = ctk.CTkLabel(self.frame_user_login, text="User Login", font=ctk.CTkFont(size=18, weight="bold"))
         label.pack(pady=10)
 
-        email_label = ctk.CTkLabel(self.frame_user_login, text="Email:")
-        email_label.pack()
-        self.entry_email = ctk.CTkEntry(self.frame_user_login, width=250)
-        self.entry_email.pack(pady=5)
+        username_label = ctk.CTkLabel(self.frame_user_login, text="Username:")
+        username_label.pack()
+        self.entry_username = ctk.CTkEntry(self.frame_user_login, width=250)
+        self.entry_username.pack(pady=5)
+
+        password_label = ctk.CTkLabel(self.frame_user_login, text="Password:")
+        password_label.pack()
+        self.entry_password = ctk.CTkEntry(self.frame_user_login, width=250, show="*")
+        self.entry_password.pack(pady=5)
 
         btn_login = ctk.CTkButton(self.frame_user_login, text="Login", command=self.user_login)
         btn_login.pack(pady=5)
@@ -64,14 +71,16 @@ class App(ctk.CTk):
         btn_back = ctk.CTkButton(self.frame_user_login, text="Back", command=self.show_start_frame)
         btn_back.pack(pady=5)
 
+
     def user_login(self):
-        email = self.entry_email.get().strip()
-        if email in self.users_db:
-            user = self.users_db[email]
-            messagebox.showinfo("Login Success", f"Welcome back, {user.first_name or 'User'}!")
-            #  Proceed to user dashboard
+        entered = self.entry_password.get().strip().encode()
+        user = self.users_db.get(username)
+        if user and bcrypt.checkpw(entered, user.get_password().encode()):
+            messagebox.showinfo("Login Success", ...)
         else:
-            messagebox.showerror("Login Failed", "User not found. Please register first.")
+            messagebox.showerror("Invalid username or password")
+
+
 
     def show_user_register_frame(self):
         self.clear_frames()
@@ -81,14 +90,17 @@ class App(ctk.CTk):
         label = ctk.CTkLabel(self.frame_user_register, text="Create User Account", font=ctk.CTkFont(size=18, weight="bold"))
         label.pack(pady=10)
 
+        self.reg_username = ctk.CTkEntry(self.frame_user_register, placeholder_text="Username")
+        self.reg_username.pack(pady=5)
+
         self.reg_first_name = ctk.CTkEntry(self.frame_user_register, placeholder_text="First Name")
         self.reg_first_name.pack(pady=5)
 
         self.reg_last_name = ctk.CTkEntry(self.frame_user_register, placeholder_text="Last Name")
         self.reg_last_name.pack(pady=5)
 
-        self.reg_email = ctk.CTkEntry(self.frame_user_register, placeholder_text="Email")
-        self.reg_email.pack(pady=5)
+        self.reg_password = ctk.CTkEntry(self.frame_user_register, placeholder_text="Password", show="*")
+        self.reg_password.pack(pady=5)
 
         btn_create = ctk.CTkButton(self.frame_user_register, text="Create Account", command=self.create_user_account)
         btn_create.pack(pady=10)
@@ -96,26 +108,43 @@ class App(ctk.CTk):
         btn_back = ctk.CTkButton(self.frame_user_register, text="Back", command=self.show_user_login_frame)
         btn_back.pack(pady=5)
 
+    import bcrypt
+
     def create_user_account(self):
+        username = self.reg_username.get().strip()
         first = self.reg_first_name.get().strip()
         last = self.reg_last_name.get().strip()
-        email = self.reg_email.get().strip()
+        password = self.reg_password.get().strip()
 
-        if not email:
-            messagebox.showerror("Error", "Email is required.")
+        # Validations
+        if not username:
+            messagebox.showerror("Error", "Username is required.")
+            return
+        if len(username) < 5:
+            messagebox.showerror("Error", "Username must be at least 5 characters.")
+            return
+        if not password or len(password) < 6:
+            messagebox.showerror("Error", "Password must be at least 6 characters.")
             return
 
-        if email in self.users_db:
-            messagebox.showerror("Error", "User already exists. Please login.")
+        # Check if username already exists
+        if username in self.users_db:
+            messagebox.showerror("Error", "Username already exists. Please log in.")
             return
 
-        new_user = User(email=email, first_name=first, last_name=last)
-        self.users_db[email] = new_user
+        # Hash the password
+        hashed_pw = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
 
+        # Create and store user
+        new_user = User(username=username, password=hashed_pw, first_name=first, last_name=last)
+        self.users_db[username] = new_user
+
+        # Save to CSV
         save_users_to_csv(self.users_db)
 
-        messagebox.showinfo("Success", f"Account created for {first}!")
+        messagebox.showinfo("Success", f"Account created for {username}!")
         self.show_user_login_frame()
+
 
     def show_admin_login_frame(self):
         self.clear_frames()
@@ -125,7 +154,7 @@ class App(ctk.CTk):
         label = ctk.CTkLabel(self.frame_admin_login, text="Admin Login", font=ctk.CTkFont(size=18, weight="bold"))
         label.pack(pady=10)
 
-        self.admin_email_entry = ctk.CTkEntry(self.frame_admin_login, placeholder_text="Admin Email")
+        self.admin_email_entry = ctk.CTkEntry(self.frame_admin_login, placeholder_text="Admin username")
         self.admin_email_entry.pack(pady=5)
 
         self.admin_pass_entry = ctk.CTkEntry(self.frame_admin_login, placeholder_text="Password", show="*")
