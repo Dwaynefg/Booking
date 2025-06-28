@@ -8,12 +8,12 @@ import bcrypt
 ctk.set_appearance_mode("System")
 ctk.set_default_color_theme("blue")
 
-class App(ctk.CTk):
+class App(ctk.CTk): 
     def __init__(self):
         super().__init__()
 
         self.title("Ride Booking System Login")
-        self.geometry("400x400")
+        self.geometry("1024x768")
 
         # Load users from CSV on startup
         self.users_db = load_users_from_csv()
@@ -71,16 +71,16 @@ class App(ctk.CTk):
         btn_back = ctk.CTkButton(self.frame_user_login, text="Back", command=self.show_start_frame)
         btn_back.pack(pady=5)
 
-
     def user_login(self):
-        entered = self.entry_password.get().strip().encode()
+        username = self.entry_username.get().strip()
+        password = self.entry_password.get().strip().encode()
+
         user = self.users_db.get(username)
-        if user and bcrypt.checkpw(entered, user.get_password().encode()):
-            messagebox.showinfo("Login Success", ...)
+        if user and bcrypt.checkpw(password, user.get_password().encode()):
+            messagebox.showinfo("Login Success", f"Welcome back, {user.get_first_name() or user.get_username()}!")
+            # Proceed to user dashboard here
         else:
-            messagebox.showerror("Invalid username or password")
-
-
+            messagebox.showerror("Login Failed", "Invalid username or password.")
 
     def show_user_register_frame(self):
         self.clear_frames()
@@ -107,8 +107,6 @@ class App(ctk.CTk):
 
         btn_back = ctk.CTkButton(self.frame_user_register, text="Back", command=self.show_user_login_frame)
         btn_back.pack(pady=5)
-
-    import bcrypt
 
     def create_user_account(self):
         username = self.reg_username.get().strip()
