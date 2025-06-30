@@ -1,2 +1,2 @@
-s_no,user_id,password,username,first_name,last_name
-1,c6e43ea1-c7da-4d35-aea2-cd355f0868d8,$2b$12$.zsYIL1BX/M4pOKTqjl6nuzLGyiDxs8fzKt8UPpFMMb9/VRsT.xUe,dwayne,dwayne,dwayne
+user_id,first_name,last_name,username,password
+ff96bc21-25c5-4a44-9913-2b5434d03301,dwayne,dwayne,dwayne,$2b$12$phuNcJLQV0SS1xiRtfhMDOy2fBdwyVmrql0Faj8sOPx6hjLYTkQ6K

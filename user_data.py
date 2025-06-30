@@ -4,36 +4,46 @@ from user import User
 USERS_CSV_FILE = "users.csv"
 
 def save_users_to_csv(users_db):
-    with open(USERS_CSV_FILE, mode='w', newline='') as file:
+    with open(USERS_CSV_FILE, mode='w', newline='', encoding='utf-8') as file:
         writer = csv.writer(file)
-        # Note header updated from email to password
-        writer.writerow(["s_no", "user_id", "password", "username", "first_name", "last_name"])
-        
-        for index, user in enumerate(users_db.values(), start=1):
-            data = user.to_dict()
+        # Corrected header order
+        writer.writerow(["user_id", "first_name", "last_name", "username", "password"])
+        for user in users_db.values():
+            d = user.to_dict()
+            # Match the header order
             writer.writerow([
-                index,
-                data["user_id"],
-                data["password"],
-                data["username"] or "",
-                data["first_name"] or "",
-                data["last_name"] or ""
+                d["user_id"],
+                d.get("first_name", "") or "",
+                d.get("last_name", "") or "",
+                d["username"],
+                d["password"]
             ])
 
 def load_users_from_csv():
     users = {}
     try:
-        with open(USERS_CSV_FILE, mode='r', newline='') as file:
+        with open(USERS_CSV_FILE, mode='r', newline='', encoding='utf-8') as file:
             reader = csv.DictReader(file)
-            for row in reader:
-                user = User(
-                    user_id=row["user_id"],
-                    first_name=row.get("first_name", None),
-                    last_name=row.get("last_name", None),
-                    username=row.get("username", None),
-                    password=row["password"]
-                )
-                users[user.get_password()] = user  # Using password as key (you may want to use username or another key)
+            for r in reader:
+                    # Validate required fields
+                    user_id = r["user_id"]
+                    username = r["username"]
+                    password = r["password"]
+
+                    # Optional fields
+                    first_name = r.get("first_name") or None
+                    last_name = r.get("last_name") or None
+
+                    # Create user
+                    user = User(
+                        username=username,
+                        password=password,
+                        first_name=first_name,
+                        last_name=last_name,
+                        user_id=user_id
+                    )
+                    users[username] = user
     except FileNotFoundError:
-        pass
+        pass  # It's okay if the file doesn't exist yet
     return users
+
