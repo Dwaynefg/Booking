@@ -46,13 +46,15 @@ class MapWidget:
         try:
             address = self.get_address_from_coordinates(lat, lng)
             if self.parent_app:
-                self.parent_app.root.after(0, 
+                # Fixed: Use self.parent_app.window instead of self.parent_app.root
+                self.parent_app.window.after(0, 
                     lambda: self.parent_app.show_location_confirmation_dialog(lat, lng, address))
         except Exception as e:
             print(f"Error getting address and showing dialog: {e}")
             if self.parent_app:
                 fallback_address = f"Location at {lat:.4f}, {lng:.4f}"
-                self.parent_app.root.after(0, 
+                # Fixed: Use self.parent_app.window instead of self.parent_app.root
+                self.parent_app.window.after(0, 
                     lambda: self.parent_app.show_location_confirmation_dialog(lat, lng, fallback_address))
     
     def get_address_from_coordinates(self, lat, lng):

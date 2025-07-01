@@ -1,13 +1,13 @@
 import customtkinter as ctk
 from vehicle import Car4Seater, Minivan, Bike
 from booking import Booking
-import Booking_History as booking_logs
+import booking_history as booking_logs
 from datetime import datetime
 
 # Load existing bookings
 bookings = booking_logs.load_bookings_from_csv()
 
-# Vehicle options mapping
+# Vehicle class options with default cost per mile
 vehicle_options = {
     "Car4Seater": (Car4Seater, 1.5),
     "Minivan": (Minivan, 1.8),
@@ -30,7 +30,11 @@ class BookingApp(ctk.CTk):
         self.refresh_booking_list()
 
     def create_form(self):
-        labels = ["User Name", "Driver Name", "Pickup Location", "Drop-off Location", "Distance (km)", "Duration (min)", "Payment Method"]
+        labels = [
+            "User Name", "Driver Name", "Pickup Location",
+            "Drop-off Location", "Distance (km)",
+            "Duration (min)", "Payment Method"
+        ]
         self.entries = {}
 
         for i, label in enumerate(labels):
@@ -68,7 +72,7 @@ class BookingApp(ctk.CTk):
             booking_id = str(int(datetime.now().timestamp()))
 
             booking = Booking(
-                bookingID=booking_id,
+                booking_id=booking_id,      # use snake_case here
                 userName=user,
                 driverName=driver,
                 vehicle=vehicle,
@@ -107,3 +111,4 @@ if __name__ == "__main__":
     ctk.set_default_color_theme("blue")
     app = BookingApp()
     app.mainloop()
+    
