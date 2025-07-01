@@ -1,6 +1,0 @@
-﻿Vehicle_Type,Base Fare,Tax,Cost(km)
-Car(4 Seater),100,3,15
-Car(6 Seater),120,3,17
-Mini Van,180,3,17
-Van,200,3,20
-Motorcycle,50,3,10

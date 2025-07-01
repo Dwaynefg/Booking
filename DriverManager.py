@@ -30,37 +30,18 @@ class DriverManager:
                         "driver_name": row['driver_name'],
                         "vehicle_name": row['vehicle_name'],
                         "contact_no": row['contact_no'],
-                        "plate_no": row['plate_no'],
-                        "status": row.get('status', 'available')  # Add status field to track driver availability
+                        "plate_no": row['plate_no']
                     })
                 else:
                     print(f"Warning: Vehicle type '{vehicle_type}' not recognized and will be ignored.")
         return data
     
-    def get_driver_info(self, Vehicle_Type):
+    def get_driver_info(self, vehicle_type):
         """Randomly pick a driver for the given vehicle type."""
-        if Vehicle_Type in self.driver_data:
-            available_drivers = [driver for driver in self.driver_data[Vehicle_Type] if driver['status'] == 'available']
-            if available_drivers:
-                return random.choice(available_drivers)
-            else:
-                print(f"No drivers available for vehicle type '{Vehicle_Type}'.")
-                return None
+        if vehicle_type in self.driver_data:
+            return random.choice(self.driver_data[vehicle_type])  # No need to filter by availability
         else:
-            raise ValueError(f"Vehicle type '{Vehicle_Type}' is not recognized.")
-    
-    def update_driver_status(self, Vehicle_Type, driver_name, new_status):
-        """Update the status of a driver (e.g., to 'busy' after booking)."""
-        # Find and update the driver's status in the data
-        for driver in self.driver_data.get(Vehicle_Type, []):
-            if driver['driver_name'] == driver_name:
-                driver['status'] = new_status
-                break
-        else:
-            print(f"Driver '{driver_name}' not found for vehicle type '{Vehicle_Type}'.")
-        
-        # Save updated driver data back to CSV
-        self.save_driver_data()
+            raise ValueError(f"Vehicle type '{vehicle_type}' is not recognized.")
     
     def save_driver_data(self):
         """Save updated driver information back to the CSV file."""
@@ -74,7 +55,7 @@ class DriverManager:
         
         # Write the updated data to the CSV file
         with open(self.file_path, mode='w', newline='', encoding='utf-8') as csvfile:
-            fieldnames = ['driver_name', 'vehicle_name', 'contact_no', 'plate_no', 'vehicle_type', 'status']
+            fieldnames = ['driver_name', 'vehicle_name', 'contact_no', 'plate_no', 'vehicle_type']
             writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
             writer.writeheader()
             writer.writerows(flattened_data)

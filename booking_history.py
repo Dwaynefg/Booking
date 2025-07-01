@@ -2,16 +2,13 @@ import csv
 from booking import Booking
 from vehicle import *
 
-BOOKING_CSV_FILE = "bookings.csv"
-print("booking_history loaded")
-print(dir())
 def save_bookings_to_csv(bookings):
     with open(BOOKING_CSV_FILE, mode='w', newline='', encoding='utf-8') as file:
         writer = csv.writer(file)
         writer.writerow([
             "bookingID", "bookingDate", "userName", "driverName",
             "vehicleType", "vehicleName", "pickup", "drop-off",
-            "distance_km", "duration_min", "cost_per_mile", "tax",
+            "distance_km", "cost_per_mile", "tax",
             "totalCost", "paymentMethod", "status"
         ])
         for booking in bookings:
@@ -26,7 +23,6 @@ def save_bookings_to_csv(bookings):
                 d["pickup"],
                 d["drop-off"],
                 d["distance_km"],
-                d["duration_min"],
                 d["cost_per_mile"],
                 d["tax"],
                 d["totalCost"],
@@ -54,6 +50,7 @@ def load_bookings_from_csv():
                 vehicle_cls = vehicle_class_map.get(vehicle_type, Vehicle)
                 vehicle = vehicle_cls(vehicle_name, cost_per_mile)
 
+                # Create the booking without duration_min
                 booking = Booking(
                     bookingID=r["bookingID"],
                     bookingDate=r["bookingDate"],
@@ -63,7 +60,7 @@ def load_bookings_from_csv():
                     pickup=r["pickup"],
                     drop_off=r["drop-off"],
                     distance_km=float(r["distance_km"]),
-                    duration_min=int(r["duration_min"]),
+                    # duration_min removed
                     paymentMethod=r["paymentMethod"],
                     status=r["status"]
                 )
