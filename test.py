@@ -1,7 +1,6 @@
 import tkinter as tk
 from tkinter import ttk
-from booking import booking_history.csv  # Assuming this function loads all bookings
-
+ # Assuming this function loads all booking
 class BookingApp:
     def __init__(self, root):
         self.root = root

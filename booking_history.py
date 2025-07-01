@@ -3,7 +3,7 @@ from booking import Booking
 from vehicle import *
 
 def save_bookings_to_csv(bookings):
-    with open(BOOKING_CSV_FILE, mode='w', newline='', encoding='utf-8') as file:
+    with open("booking_history.csv", mode='w', newline='', encoding='utf-8') as file:
         writer = csv.writer(file)
         writer.writerow([
             "bookingID", "bookingDate", "userName", "driverName",
@@ -33,7 +33,7 @@ def save_bookings_to_csv(bookings):
 def load_bookings_from_csv():
     bookings = []
     try:
-        with open(BOOKING_CSV_FILE, mode='r', newline='', encoding='utf-8') as file:
+        with open("booking_history.csv", mode='r', newline='', encoding='utf-8') as file:
             reader = csv.DictReader(file)
             for r in reader:
                 vehicle_type = r["vehicleType"]
