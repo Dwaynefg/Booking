@@ -1,51 +1,73 @@
-import tkinter as tk
+import pandas as pd
 from tkinter import ttk
-from booking import booking_history.csv  # Assuming this function loads all bookings
+import customtkinter as ctk
 
-class BookingApp:
-    def __init__(self, root):
-        self.root = root
-        self.root.title("View All Bookings")
+class CSVViewer(ctk.CTkFrame):
+    def __init__(self, parent, csv_file):
+        super().__init__(parent)
+        self.csv_file = csv_file
         
-        # Create a frame for the treeview (table)
-        self.frame = ttk.Frame(self.root)
-        self.frame.pack(fill=tk.BOTH, expand=True)
+        # Create treeview
+        self.tree = ttk.Treeview(self)
+        
+        # Configure scrollbar
+        scrollbar = ttk.Scrollbar(self, orient="vertical", command=self.tree.yview)
+        self.tree.configure(yscrollcommand=scrollbar.set)
+        
+        # Pack widgets
+        self.tree.pack(side="left", fill="both", expand=True)
+        scrollbar.pack(side="right", fill="y")
+        
+        # Load data
+        self.load_data()
+    
+    def load_data(self):
+        # Clear existing data
+        for item in self.tree.get_children():
+            self.tree.delete(item)
+        
+        try:
+            # Read CSV file
+            df = pd.read_csv(self.csv_file)
+            
+            # If empty, create sample columns
+            if df.empty:
+                df = pd.DataFrame(columns=[
+                    "ID", "User", "Vehicle", "From", "To", 
+                    "Distance", "Cost", "Status"
+                ])
+                df.to_csv(self.csv_file, index=False)
+            
+            # Configure treeview columns
+            self.tree["columns"] = list(df.columns)
+            for col in df.columns:
+                self.tree.heading(col, text=col)
+                self.tree.column(col, width=100, anchor="center")
+            
+            # Insert data
+            for _, row in df.iterrows():
+                self.tree.insert("", "end", values=list(row))
+                
+        except FileNotFoundError:
+            # Create new CSV with headers if file doesn't exist
+            df = pd.DataFrame(columns=[
+                "ID", "User", "Vehicle", "From", "To", 
+                "Distance", "Cost", "Status"
+            ])
+            df.to_csv(self.csv_file, index=False)
+            self.load_data()  # Reload after creating file
 
-        # Create a Treeview widget (table) to display bookings
-        self.tree = ttk.Treeview(self.frame, columns=("Booking ID", "User", "Vehicle Type", "Start Location", "End Location", "Distance", "Total Cost"), show="headings")
-        self.tree.pack(fill=tk.BOTH, expand=True)
-
-        # Define the column headings
-        self.tree.heading("Booking ID", text="Booking ID")
-        self.tree.heading("User", text="User")
-        self.tree.heading("Vehicle Type", text="Vehicle Type")
-        self.tree.heading("Start Location", text="Start Location")
-        self.tree.heading("End Location", text="End Location")
-        self.tree.heading("Distance", text="Distance (km)")
-        self.tree.heading("Total Cost", text="Total Cost ($)")
-
-        # Load and display the bookings in the Treeview
-        self.display_bookings()
-
-    def display_bookings(self):
-        bookings = load_bookings_from_csv()  # Get all the bookings from CSV
-        for booking in bookings:
-            # Insert each booking as a row into the treeview
-            self.tree.insert("", "end", values=(
-                booking.bookingID, 
-                booking.userName, 
-                booking.vehicle.__class__.__name__, 
-                booking.pickup, 
-                booking.drop_off, 
-                f"{booking.distance_km:.1f}",  # Distance rounded to 1 decimal place
-                f"{booking.totalCost:.2f}"  # Total cost rounded to 2 decimal places
-            ))
-
-# Main function to run the Tkinter app
-def main():
-    root = tk.Tk()
-    app = BookingApp(root)
-    root.mainloop()
+# Example usage:
+class App(ctk.CTk):
+    def __init__(self):
+        super().__init__()
+        self.title("CSV Viewer")
+        self.geometry("1000x600")
+        
+        # Create CSV viewer
+        self.viewer = CSVViewer(self, "ride_bookings.csv")
+        self.viewer.pack(fill="both", expand=True, padx=10, pady=10)
 
 if __name__ == "__main__":
-    main()
+    app = App()
+    app.mainloop()
