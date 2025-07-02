@@ -46,7 +46,7 @@ class BookingTableView(ctk.CTkFrame):
             height=15,
             selectmode="extended",
             columns=("Driver_name", "Vehicle", "Pickup_point", 
-                    "Destination","distance", "Booking_ID", "Price", "Status"),
+                    "Destination", "Booking_ID", "Price", "Status"),
             show="headings"
         )
         self.scrollbar.config(command=self.tree.yview)
@@ -58,7 +58,6 @@ class BookingTableView(ctk.CTkFrame):
             "Pickup_point": {"width": 100, "anchor": "center", "heading_anchor": "center"},
             "Destination": {"width": 120, "anchor": "center", "heading_anchor": "center"},
             "Booking_ID": {"width": 100, "anchor": "center", "heading_anchor": "center"},
-            "distance": {"width": 80, "anchor": "center", "heading_anchor": "center"},
             "Price": {"width": 80, "anchor": "center", "heading_anchor": "center"},  # Changed to center
             "Status": {"width": 80, "anchor": "center", "heading_anchor": "center"}
         }
@@ -89,14 +88,14 @@ class BookingTableView(ctk.CTkFrame):
             if df.empty:
                 df = pd.DataFrame(columns=[
                     "Driver_name", "Vehicle", "Pickup_point",
-                "Destination", "distance","Booking_ID", "Price", "Status"
+                "Destination","Booking_ID", "Price", "Status"
                 ])
                 df.to_csv(self.csv_file, index=False)
             
             # Filter and format the data
             display_columns = [
                 "Driver_name", "Vehicle", "Pickup_point",
-                "Destination", "distance","Booking_ID", "Price", "Status"
+                "Destination","Booking_ID", "Price", "Status"
             ]
             # Format Price with currency symbol and center-align
             if 'Price' in df.columns:
@@ -117,7 +116,7 @@ class BookingTableView(ctk.CTkFrame):
         except FileNotFoundError:
             df = pd.DataFrame(columns=[
                 "Driver_name", "Vehicle", "Pickup_point",
-                "Destination", "distance","Booking_ID", "Price", "Status"
+                "Destination","Booking_ID", "Price", "Status"
             ])
             df.to_csv(self.csv_file, index=False)
             self.load_data()
@@ -451,8 +450,8 @@ class ManageVehicleApp(ctk.CTk):
         self.scale_factor = 0.8
         
         # CSV files
-        self.booking_csv = DATA_PATH / "book_history.csv"
-        self.driver_csv = DATA_PATH / "driver.csv"
+        self.booking_csv ="book_history.csv"
+        self.driver_csv = "driver.csv"
         
         # Navigation button tracking
         self.button_widgets = {}

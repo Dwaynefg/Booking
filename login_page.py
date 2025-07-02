@@ -168,9 +168,10 @@ class LoginApp:
     def open_user_dashboard(self):
         """Open regular user dashboard window"""
         self.window.destroy()
-        from user_dashboard import UserDashboard
-        user_app = UserDashboard()
-        user_app.run()
+        from Booking_page import MapWithDistanceRideBookingApp
+        user_app = MapWithDistanceRideBookingApp()
+        user_app.run()  # Changed from run() to mainloop()
+        
 
     def open_signup(self):
         self.window.destroy()
