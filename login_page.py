@@ -5,21 +5,25 @@ from user_data import load_users_from_csv
 from tkinter import messagebox
 import bcrypt
 from admin import verify_admin  # Import your admin verification function
-
-# Set appearance mode and color theme
+# ================ APPLICATION CONFIGURATION ================
+# Set UI appearance settings
 ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("blue")
 
+# ================ PATH MANAGEMENT ================
+# Configure paths for asset files
 OUTPUT_PATH = Path(__file__).parent
 ASSETS_PATH = OUTPUT_PATH / "Login_Page" / "frame0"
 
 def relative_to_assets(path: str) -> Path:
     return ASSETS_PATH / Path(path)
 
+# ================ AUTHENTICATION HELPERS ================
 def verify_password(stored_hash: str, provided_password: str) -> bool:
     """Verify password against stored bcrypt hash"""
     return bcrypt.checkpw(provided_password.encode('utf-8'), stored_hash.encode('utf-8'))
 
+# ================ MAIN LOGIN APPLICATION ================
 class LoginApp:
     def __init__(self):
         self.window = ctk.CTk()
@@ -157,9 +161,9 @@ class LoginApp:
     def open_admin_dashboard(self):
         """Open admin dashboard window"""
         self.window.destroy()
-        from admin_dashboard import AdminDashboard
-        admin_app = AdminDashboard()
-        admin_app.run()
+        from Admin_Dashboard  import ManageVehicleApp  # Changed from AdminDashboard
+        admin_app = ManageVehicleApp()
+        admin_app.mainloop()
 
     def open_user_dashboard(self):
         """Open regular user dashboard window"""
@@ -178,6 +182,7 @@ class LoginApp:
         self.window.resizable(False, False)
         self.window.mainloop()
 
+# ================ APPLICATION ENTRY POINT ================
 if __name__ == "__main__":
     app = LoginApp()
     app.run()

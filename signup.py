@@ -5,22 +5,26 @@ import bcrypt
 from user import User
 from user_data import save_users_to_csv, load_users_from_csv
 from tkinter import messagebox
-
+# ================ APPLICATION CONFIGURATION ================
 # Initialize CTk settings
 ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("blue")
 
+# ================ PATH MANAGEMENT ================
+# Configure paths for asset files
 OUTPUT_PATH = Path(__file__).parent
 ASSETS_PATH = OUTPUT_PATH / "Signup_page" / "Signup_page"
 
 def relative_to_assets(path: str) -> Path:
     return ASSETS_PATH / Path(path)
 
+# ================ SECURITY HELPERS ================
 def hash_password(password: str) -> str:
     """Hash password using bcrypt with salt"""
     salt = bcrypt.gensalt()
     return bcrypt.hashpw(password.encode('utf-8'), salt).decode('utf-8')
 
+# ================ SIGNUP APPLICATION CLASS ================
 class SignupApp:
     def __init__(self, return_to_login=False):
         self.window = ctk.CTk()
@@ -205,6 +209,7 @@ class SignupApp:
         self.window.resizable(False, False)
         self.window.mainloop()
 
+# ================ APPLICATION ENTRY POINT ================
 if __name__ == "__main__":
     app = SignupApp()
     app.run()

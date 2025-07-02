@@ -4,12 +4,16 @@ import customtkinter as ctk
 from PIL import Image, ImageTk
 from pathlib import Path
 
-OUTPUT_PATH = Path(__file__).parent
-ASSETS_PATH = OUTPUT_PATH / "ManageVehicle_Page" / "frame0"
+# ====================== PATH CONFIGURATION ======================
+# Set up paths for assets and data files
+OUTPUT_PATH = Path(__file__).parent  # Root directory of the project
+ASSETS_PATH = OUTPUT_PATH / "ManageVehicle_Page" / "frame0"  # UI assets
+DATA_PATH = OUTPUT_PATH / "data"  # Where CSV files are stored
 
 def relative_to_assets(path: str) -> Path:
     return ASSETS_PATH / Path(path)
 
+# ====================== BOOKING TABLE VIEW ======================
 class BookingTableView(ctk.CTkFrame):
     def __init__(self, parent, csv_file):
         super().__init__(parent, fg_color="#FFFFFF")
@@ -39,9 +43,38 @@ class BookingTableView(ctk.CTkFrame):
         self.tree = ttk.Treeview(
             self.tree_frame,
             yscrollcommand=self.scrollbar.set,
-            height=15
+            height=15,
+            selectmode="extended",
+            columns=("Driver_name", "Vehicle", "Pickup_point", 
+                    "Destination","distance", "Booking_ID", "Price", "Status"),
+            show="headings"
         )
         self.scrollbar.config(command=self.tree.yview)
+    
+        # Configure column headings and properties
+        columns_config = {
+            "Driver_name": {"width": 120, "anchor": "w", "heading_anchor": "w"},
+            "Vehicle": {"width": 100, "anchor": "center", "heading_anchor": "center"},
+            "Pickup_point": {"width": 100, "anchor": "center", "heading_anchor": "center"},
+            "Destination": {"width": 120, "anchor": "center", "heading_anchor": "center"},
+            "Booking_ID": {"width": 100, "anchor": "center", "heading_anchor": "center"},
+            "distance": {"width": 80, "anchor": "center", "heading_anchor": "center"},
+            "Price": {"width": 80, "anchor": "center", "heading_anchor": "center"},  # Changed to center
+            "Status": {"width": 80, "anchor": "center", "heading_anchor": "center"}
+        }
+
+        # Apply column configurations
+        for col, config in columns_config.items():
+            self.tree.heading(col, text=col, anchor=config["heading_anchor"])
+            self.tree.column(col, width=config["width"], anchor=config["anchor"])
+        
+        # Configure style
+        self.style = ttk.Style()
+        self.style.configure("Treeview", 
+                           rowheight=25,
+                           font=('Inter', 12))
+        self.style.configure("Treeview.Heading", 
+                           font=('Inter', 12, 'bold'))
         
         # Load data
         self.load_data()
@@ -55,29 +88,41 @@ class BookingTableView(ctk.CTkFrame):
             
             if df.empty:
                 df = pd.DataFrame(columns=[
-                    "ID", "User", "Vehicle", "From", "To", 
-                    "Distance", "Cost", "Status"
+                    "Driver_name", "Vehicle", "Pickup_point",
+                "Destination", "distance","Booking_ID", "Price", "Status"
                 ])
                 df.to_csv(self.csv_file, index=False)
             
-            self.tree["columns"] = list(df.columns)
-            for col in df.columns:
-                self.tree.heading(col, text=col)
-                self.tree.column(col, width=120, anchor="w")
+            # Filter and format the data
+            display_columns = [
+                "Driver_name", "Vehicle", "Pickup_point",
+                "Destination", "distance","Booking_ID", "Price", "Status"
+            ]
+            # Format Price with currency symbol and center-align
+            if 'Price' in df.columns:
+                df['Price'] = df['Price'].apply(lambda x: f"₱{x:,.2f}" if pd.notnull(x) else "")
             
-            for _, row in df.iterrows():
-                self.tree.insert("", "end", values=list(row))
-                
+            # Insert data with alternating row colors
+            for i, row in df.iterrows():
+                values = [row[col] if pd.notnull(row[col]) else "" for col in display_columns]
+                tag = 'evenrow' if i % 2 == 0 else 'oddrow'
+                self.tree.insert("", "end", values=values, tags=(tag,))
+            
+            # Configure row colors
+            self.tree.tag_configure('evenrow', background='#FFFFFF')
+            self.tree.tag_configure('oddrow', background='#F5F5F5')
+            
             self.tree.pack(fill="both", expand=True)
                 
         except FileNotFoundError:
             df = pd.DataFrame(columns=[
-                "ID", "User", "Vehicle", "From", "To", 
-                "Distance", "Cost", "Status"
+                "Driver_name", "Vehicle", "Pickup_point",
+                "Destination", "distance","Booking_ID", "Price", "Status"
             ])
             df.to_csv(self.csv_file, index=False)
             self.load_data()
 
+# ====================== DRIVER TABLE VIEW ====================== 
 class DriverTableView(ctk.CTkFrame):
     def __init__(self, parent, csv_file):
         super().__init__(parent, fg_color="#FFFFFF")
@@ -90,7 +135,7 @@ class DriverTableView(ctk.CTkFrame):
         # Title label
         self.title_label = ctk.CTkLabel(
             self.container,
-            text="Driver Management",
+            text="Rider Directory",
             text_color="#000000",
             font=("Inter", 24),
             fg_color="#FFFFFF"
@@ -145,6 +190,7 @@ class DriverTableView(ctk.CTkFrame):
             
         self.tree.pack(fill="both", expand=True)
 
+# ====================== VEHICLE MANAGEMENT TAB ======================
 class ManageVehicleTab(ctk.CTkFrame):
     def __init__(self, parent):
         super().__init__(parent, fg_color="#FFFFFF")
@@ -171,7 +217,6 @@ class ManageVehicleTab(ctk.CTkFrame):
             {"type": "4 Seater Car", "image": "image_4.png", "color": "#510000"},
             {"type": "Mini Van", "image": "image_7.png", "color": "#510000"},
             {"type": "Van", "image": "image_6.png", "color": "#510000"},
-            {"type": "Add New", "image": "button_2.png", "color": "#FFBEBE", "is_add_button": True}
         ]
 
         # Create a grid layout frame
@@ -259,7 +304,6 @@ class ManageVehicleTab(ctk.CTkFrame):
             text="",
             fg_color="transparent",
             hover_color="#FFD0D0",
-            command=self.add_vehicle_clicked
         ).place(relx=0.5, rely=0.4, anchor="center")
 
         ctk.CTkLabel(
@@ -271,7 +315,7 @@ class ManageVehicleTab(ctk.CTkFrame):
 
     def create_save_button(self):
         """Create the save button at bottom right"""
-        save_img = self.load_and_resize_image("button_1.png", (200, 30))
+        save_img = self.load_and_resize_image("button_1.png", (250, 50))
         save_button = ctk.CTkButton(
             self,
             image=save_img,
@@ -282,19 +326,121 @@ class ManageVehicleTab(ctk.CTkFrame):
         )
         save_button.place(relx=0.9, rely=0.95, anchor="center")
 
-    def add_vehicle_clicked(self):
-        print("Add Vehicle button clicked - implement your logic here")
 
     def save_clicked(self):
-        print("Save button clicked - implement your logic here")
-        # Example of getting all entered prices:
+        """Handle save button click with confirmation and validation"""
+        # Check if any entry has a value
+        has_values = any(entry.get().strip() for entry in self.vehicle_entries.values())
+        
+        if not has_values:
+            self.show_message("No Values Entered", "Please enter cost values before saving.")
+            return
+            
+        # Ask for confirmation
+        confirmed = self.ask_confirmation("Confirm Save", 
+                                        "Are you sure you want to update the cost per mile?")
+        
+        if confirmed:
+            # Process the save operation
+            self.process_save()
+            self.show_message("Success", "Cost per mile updated successfully!")
+    
+    def ask_confirmation(self, title, message):
+        """Show a confirmation dialog"""
+        dialog = ctk.CTkToplevel(self)
+        dialog.title(title)
+        dialog.geometry("400x200")
+        dialog.transient(self)  # Set to be on top of main window
+        dialog.grab_set()  # Modal dialog
+        
+        # Center the dialog
+        x = self.winfo_x() + (self.winfo_width() // 2) - 200
+        y = self.winfo_y() + (self.winfo_height() // 2) - 100
+        dialog.geometry(f"+{x}+{y}")
+        
+        # Message label
+        ctk.CTkLabel(
+            dialog,
+            text=message,
+            font=("Inter", 14)
+        ).pack(pady=20)
+        
+        # Button frame
+        button_frame = ctk.CTkFrame(dialog, fg_color="transparent")
+        button_frame.pack(pady=10)
+        
+        result = {'confirmed': False}
+        
+        def on_confirm():
+            result['confirmed'] = True
+            dialog.destroy()
+            
+        def on_cancel():
+            dialog.destroy()
+        
+        # Confirm button
+        ctk.CTkButton(
+            button_frame,
+            text="Yes",
+            command=on_confirm,
+            width=100
+        ).pack(side="left", padx=10)
+        
+        # Cancel button
+        ctk.CTkButton(
+            button_frame,
+            text="No",
+            command=on_cancel,
+            width=100
+        ).pack(side="left", padx=10)
+        
+        self.wait_window(dialog)
+        return result['confirmed']
+    
+    def show_message(self, title, message):
+        """Show an information message"""
+        dialog = ctk.CTkToplevel(self)
+        dialog.title(title)
+        dialog.geometry("400x150")
+        dialog.transient(self)
+        dialog.grab_set()
+        
+        # Center the dialog
+        x = self.winfo_x() + (self.winfo_width() // 2) - 200
+        y = self.winfo_y() + (self.winfo_height() // 2) - 75
+        dialog.geometry(f"+{x}+{y}")
+        
+        # Message label
+        ctk.CTkLabel(
+            dialog,
+            text=message,
+            font=("Inter", 14)
+        ).pack(pady=20)
+        
+        # OK button
+        ctk.CTkButton(
+            dialog,
+            text="OK",
+            command=dialog.destroy,
+            width=100
+        ).pack(pady=10)
+        
+        self.wait_window(dialog)
+    
+    def process_save(self):
+        """Process the save operation (to be implemented)"""
+        # Here you would save the values to your database or file
         for vehicle_type, entry in self.vehicle_entries.items():
-            print(f"{vehicle_type}: {entry.get()}")
+            value = entry.get().strip()
+            if value:
+                print(f"Saving {vehicle_type}: {value}")
+                # Add your save logic here
 
+# ====================== MAIN APPLICATION ======================
 class ManageVehicleApp(ctk.CTk):
     def __init__(self):
         super().__init__()
-        self.title("Vehicle Management System")
+        self.title("Admin Dashboard")
         self.geometry("1024x768")
         self.configure(fg_color="#FFFFFF")
         ctk.set_appearance_mode("light")
@@ -305,8 +451,14 @@ class ManageVehicleApp(ctk.CTk):
         self.scale_factor = 0.8
         
         # CSV files
-        self.booking_csv = "ride_bookings.csv"
-        self.driver_csv = "driver.csv"
+        self.booking_csv = DATA_PATH / "book_history.csv"
+        self.driver_csv = DATA_PATH / "driver.csv"
+        
+        # Navigation button tracking
+        self.button_widgets = {}
+        self.active_button = None
+
+        self.content_frame = None
         
         self.create_widgets()
 
@@ -344,7 +496,7 @@ class ManageVehicleApp(ctk.CTk):
         self.sidebar.pack(fill="y", side="left")
 
         # Sidebar logo and admin label
-        logo_img = self.load_and_resize_image("image_1.png", (48, 48))
+        logo_img = self.load_and_resize_image("image_1.png", (120, 120))
         ctk.CTkLabel(
             self.sidebar,
             image=logo_img,
@@ -362,22 +514,32 @@ class ManageVehicleApp(ctk.CTk):
 
         # Sidebar navigation buttons
         nav_buttons = [
-            {"image": "button_3.png", "command": self.show_dashboard_tab},
-            {"image": "button_5.png", "command": self.show_manage_vehicle_tab},
-            {"image": "button_4.png", "command": self.show_manage_rider_tab}
+            {"name": "dashboard", "image": "button_3.png", "active_image": "button_3_active.png", "command": self.show_dashboard_tab},
+            {"name": "vehicle", "image": "button_5.png", "active_image": "button_5_active.png", "command": self.show_manage_vehicle_tab},
+            {"name": "rider", "image": "button_4.png", "active_image": "button_4_active.png", "command": self.show_manage_rider_tab}
         ]
 
         for button in nav_buttons:
-            btn_img = self.load_and_resize_image(button["image"], (207, 53))
+            # Load both normal and active images
+            img_normal = self.load_and_resize_image(button["image"], (207, 53))
+            img_active = self.load_and_resize_image(button["active_image"], (207, 53))
+            
             btn = ctk.CTkButton(
                 self.sidebar,
-                image=btn_img,
+                image=img_normal if button["name"] != "dashboard" else img_active,
                 text="",
                 fg_color="transparent",
                 hover_color="#555555",
-                command=button["command"]
+                command=lambda b=button: self.handle_nav_button_click(b)
             )
             btn.pack(fill="x", pady=5)
+            
+            # Store button reference
+            self.button_widgets[button["name"]] = btn
+            
+            # Set first button as active by default
+            if button["name"] == "dashboard":
+                self.active_button = button["name"]
 
         # Content frame
         self.content_frame = ctk.CTkFrame(
@@ -394,7 +556,7 @@ class ManageVehicleApp(ctk.CTk):
             image=logo_img,
             text="",
             fg_color="transparent"
-        ).place(x=15, y=-1)
+        ).place(x=0, y=-5)
 
         ctk.CTkLabel(
             self.top_bar,
@@ -402,10 +564,35 @@ class ManageVehicleApp(ctk.CTk):
             text_color="#FFFFFF",
             font=("Jaro Regular", int(64 * self.scale_factor)),
             fg_color="#610C09"
-        ).place(x=300, y=45)
+        ).place(x=250, y=45)
 
         # Create tab frames
         self.create_tab_frames()
+
+    def handle_nav_button_click(self, button):
+        """Handle navigation button clicks and image switching"""
+        # Skip if clicking the already active button
+        if self.active_button == button["name"]:
+            return
+            
+        # Execute the button's command
+        button["command"]()
+        
+        # Update button images
+        self.set_active_button(button["name"])
+
+    def set_active_button(self, button_name):
+        """Set the active button state and update images"""
+        # Set all buttons to normal state first
+        for name, btn in self.button_widgets.items():
+            normal_img = self.load_and_resize_image(f"button_{'3' if name == 'dashboard' else '5' if name == 'vehicle' else '4'}.png", (207, 53))
+            btn.configure(image=normal_img)
+        
+        # Set the new active button
+        if button_name:
+            active_img = self.load_and_resize_image(f"button_{'3' if button_name == 'dashboard' else '5' if button_name == 'vehicle' else '4'}_active.png", (207, 53))
+            self.button_widgets[button_name].configure(image=active_img)
+            self.active_button = button_name
 
     def create_tab_frames(self):
         """Create the different tab content frames"""
@@ -428,7 +615,6 @@ class ManageVehicleApp(ctk.CTk):
         # Show Dashboard tab by default
         self.show_dashboard_tab()
 
-    # Tab switching methods
     def show_dashboard_tab(self):
         self.hide_all_tabs()
         self.dashboard_frame.pack(fill="both", expand=True)
@@ -444,8 +630,11 @@ class ManageVehicleApp(ctk.CTk):
     def hide_all_tabs(self):
         for frame in self.tab_frames.values():
             frame.pack_forget()
+    def run(self):
+        self.resizable(False, False)
+        self.mainloop()
 
+# ====================== APPLICATION ENTRY POINT ======================
 if __name__ == "__main__":
     app = ManageVehicleApp()
-    app.resizable(False, False)
-    app.mainloop()
+    app.run()
